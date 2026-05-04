@@ -1,0 +1,97 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  profiles:
+    active: local
+
+  application:
+    name: real-estate
+
+  # DataSource — MySQL 기본. 프로파일별 yml에서 URL/credentials 주입
+  datasource:
+    hikari:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      connection-timeout: 10000
+      maximum-pool-size: 20
+      max-lifetime: 1800000
+      keepalive-time: 600000
+      pool-name: HikariCP
+      connection-test-query: SELECT 1
+
+  # Flyway
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+
+  # Redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+      connect-timeout: 2s
+
+  # Jackson
+  jackson:
+    time-zone: ${app.timezone}
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+  # Scheduling
+  task:
+    scheduling:
+      pool:
+        size: 5
+
+# MyBatis
+mybatis:
+  config-location: classpath:mybatis/mybatis-config.xml
+  type-aliases-package: kr.co.realestate.domain
+
+# JWT — secret은 application-local.yml 또는 환경변수로 주입
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-ttl: 3600       # 1시간 (초)
+  refresh-token-ttl: 2592000   # 30일 (초)
+
+# SpringDoc — local/dev 프로파일에서만 활성화
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# App-level typed properties
+app:
+  timezone: Asia/Seoul
+  tracing:
+    trace-header: X-Trace-Id
+    correlation-header: X-Correlation-Id
+    request-id-header: X-Request-Id
+
+# Request timing interceptor
+timing:
+  slow-request-threshold: 1000
+  log-all-requests: false
+  add-header: true
+
+cache:
+  default-ttl: 10m
+  key-prefix: "real-estate::"
+  cache-null-values: false
+
+# Logging
+logging:
+  level:
+    root: INFO
+    kr.co.realestate: INFO

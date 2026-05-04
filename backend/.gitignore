@@ -1,0 +1,28 @@
+# Maven
+target/
+*.class
+*.jar
+
+# Gradle
+build/
+.gradle/
+gradle-app.setting
+bin/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.DS_Store
+
+# Sensitive config — 로컬 시크릿은 이 파일에 보관
+src/main/resources/application-local.yml
+src/main/resources/mybatis-gen-configs/*/generator.properties
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
