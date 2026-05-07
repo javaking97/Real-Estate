@@ -1,0 +1,13 @@
+{
+  "name": "real-estate-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build && ./backend/gradlew -p backend build",
+    "test": "npm --prefix frontend run test && ./backend/gradlew -p backend test",
+    "backend": "./backend/gradlew -p backend bootRun",
+    "backend:local": "test -f backend/src/main/resources/application-local.yml || cp backend/src/main/resources/application-local.yml.example backend/src/main/resources/application-local.yml; ./backend/gradlew -p backend bootRun",
+    "infra": "docker compose up -d mysql redis",
+    "setup:infra": "bash scripts/setup-infra.sh"
+  }
+}

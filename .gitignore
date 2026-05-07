@@ -1,0 +1,28 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# logs
+*.log
+logs/
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/.env
+frontend/.env.*
+frontend/*.tsbuildinfo
+frontend/npm-debug.log*
+frontend/design
+
+# backend
+backend/.gradle/
+backend/build/
+backend/src/main/resources/application-local.yml
+
+# temporary files
+*.tmp
+*.swp
