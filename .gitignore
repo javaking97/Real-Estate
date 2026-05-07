@@ -23,6 +23,9 @@ backend/.gradle/
 backend/build/
 backend/src/main/resources/application-local.yml
 
+# root
+.env
+
 # temporary files
 *.tmp
 *.swp
