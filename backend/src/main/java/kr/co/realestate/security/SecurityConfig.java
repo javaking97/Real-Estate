@@ -39,7 +39,7 @@ public class SecurityConfig {
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final UserDetailsService userDetailsService;
 
-    @Value("${app.cors.allowed-origin-patterns:http://localhost:5173,http://real-estate-dev.duckdns.org:5173,https://real-estate-devs.vercel.app}")
+    @Value("${app.cors.allowed-origin-patterns:http://localhost:5173,https://real-estate-sepia-eta.vercel.app}")
     private String allowedOriginPatterns;
 
     @Bean
@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/v1/auth/login", "/v1/auth/refresh", "/v1/auth/logout").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/probe/**").permitAll()
