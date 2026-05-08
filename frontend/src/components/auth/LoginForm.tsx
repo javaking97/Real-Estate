@@ -30,11 +30,11 @@ export function LoginForm() {
   };
 
   return (
-    <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 400, animation: 'loginIn 0.5s cubic-bezier(0.34,1.1,0.64,1) forwards' }}>
+    <div className="login-card-wrapper" style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 400, animation: 'loginIn 0.5s cubic-bezier(0.34,1.1,0.64,1) forwards' }}>
       <form onSubmit={handleSubmit} style={{ width: '100%', background: '#ffffff', borderRadius: 20, border: '1px solid rgba(226,232,240,0.8)', boxShadow: '0 20px 60px rgba(15,23,42,0.09), 0 4px 16px rgba(15,23,42,0.05)', overflow: 'hidden' }}>
         <div style={{ height: 3, background: 'linear-gradient(90deg,#2563EB,#6366F1,#2563EB)', backgroundSize: '200% 100%' }} />
 
-        <div style={{ padding: '32px 34px 36px' }}>
+        <div className="login-card-body" style={{ padding: '32px 34px 36px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
             <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg,#1D4ED8,#6366F1)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 20px rgba(99,102,241,0.35)', marginBottom: 12 }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -88,7 +88,7 @@ export function LoginForm() {
                   onBlur={() => setFocused('')}
                   style={{ width: '100%', padding: '11px 40px 11px 36px', background: focused === 'pw' ? '#F8FAFF' : '#F8FAFC', border: focused === 'pw' ? '1px solid #2563EB' : '1px solid #E2E8F0', borderRadius: 9, color: '#0F172A', fontFamily: 'inherit', fontSize: 15, outline: 'none', boxSizing: 'border-box', boxShadow: focused === 'pw' ? '0 0 0 3px rgba(37,99,235,0.08)' : 'none' }}
                 />
-                <button type="button" onClick={() => setIsPasswordVisible((v) => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#CBD5E1', cursor: 'pointer', padding: 2, lineHeight: 0 }}>
+                <button type="button" className="login-password-toggle" onClick={() => setIsPasswordVisible((v) => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#CBD5E1', cursor: 'pointer', padding: 2, lineHeight: 0 }}>
                   {isPasswordVisible ? (
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
                   ) : (

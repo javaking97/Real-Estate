@@ -204,6 +204,79 @@ table tbody tr { cursor: pointer; transition: background 0.1s; }
   to { opacity: 1; transform: translateY(0); }
 }
 
+@media (max-width: 480px) {
+  .login-page {
+    min-height: 100dvh !important;
+    overflow: auto !important;
+    padding: 20px 16px !important;
+  }
+
+  .login-card-body {
+    padding: 26px 22px 28px !important;
+  }
+
+  .l-input {
+    font-size: 16px !important;
+  }
+
+  .login-password-toggle {
+    width: 36px !important;
+    height: 36px !important;
+    right: 2px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .l-btn {
+    min-height: 48px !important;
+  }
+
+  .login-blob,
+  .login-blob-lg {
+    width: 320px !important;
+    height: 320px !important;
+  }
+
+  .login-blob-sm {
+    width: 180px !important;
+    height: 180px !important;
+  }
+
+  .login-topbar {
+    padding: 14px 16px !important;
+  }
+
+  .login-topbar-label,
+  .login-topbar-version,
+  .login-footer {
+    font-size: 10px !important;
+  }
+
+  .login-footer {
+    left: 0 !important;
+    right: 0 !important;
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-topbar-label {
+    display: none !important;
+  }
+}
+
+@media (max-height: 640px) {
+  .login-topbar {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .login-footer {
+    display: none !important;
+  }
+}
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @keyframes pulse-dot {

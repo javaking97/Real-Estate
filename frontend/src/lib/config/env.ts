@@ -7,7 +7,7 @@ const envSchema = z.object({
 const parsedEnv = envSchema.parse({
   API_BASE_URL:
     import.meta.env.API_BASE_URL ??
-    (import.meta.env.MODE === 'test' ? 'http://localhost:8080' : undefined),
+    (import.meta.env.DEV || import.meta.env.MODE === 'test' ? 'http://localhost:8080' : undefined),
 });
 
 export const env = {

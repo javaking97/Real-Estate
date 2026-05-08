@@ -6,8 +6,7 @@ playwright-report/
 test-results/
 
 .env
-.env.local
-.env.*.local
+!.env.example
 
 *.tsbuildinfo
 vite.config.js
