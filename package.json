@@ -2,12 +2,15 @@
   "name": "real-estate-monorepo",
   "private": true,
   "scripts": {
-    "dev": "npm --prefix frontend run dev",
-    "build": "npm --prefix frontend run build && ./backend/gradlew -p backend build",
-    "test": "npm --prefix frontend run test && ./backend/gradlew -p backend test",
-    "backend": "./backend/gradlew -p backend bootRun",
-    "backend:local": "test -f backend/src/main/resources/application-local.yml || cp backend/src/main/resources/application-local.yml.example backend/src/main/resources/application-local.yml; ./backend/gradlew -p backend bootRun",
-    "infra": "docker compose up -d mysql redis",
-    "setup:infra": "bash scripts/setup-infra.sh"
+    "frontend": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:lint": "npm --prefix frontend run lint",
+    "frontend:test": "npm --prefix frontend run test",
+    "backend": "gradle -p backend bootRun",
+    "backend:local": "test -f backend/src/main/resources/application-local.yml || cp backend/src/main/resources/application-local.yml.example backend/src/main/resources/application-local.yml; gradle -p backend bootRun",
+    "backend:build": "gradle -p backend build",
+    "backend:test": "gradle -p backend test",
+    "build": "npm run frontend:build && npm run backend:build",
+    "test": "npm run frontend:test && npm run backend:test"
   }
 }
