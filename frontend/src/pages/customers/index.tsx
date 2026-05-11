@@ -156,7 +156,7 @@ export function CustomersPage() {
 
         <div className="customers-card-list">
           {filteredCustomers.map((customer) => (
-            <button key={customer.id} type="button" className="customers-mobile-card" onClick={() => openCustomerModal(customer)}>
+            <div key={customer.id} className="customers-mobile-card" onClick={() => openCustomerModal(customer)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') openCustomerModal(customer); }}>
               <div className="customers-card-header">
                 <div className="customers-name-cell">
                   <Avatar initials={`${customer.name[0]}○`} size={34} color={statusColorMap[customer.status] || '#6B7280'} />
@@ -181,7 +181,7 @@ export function CustomersPage() {
                 <button onClick={() => showToast(`${customer.name} 문자 초안을 작성합니다.`, 'success')}>문자</button>
                 <button onClick={() => showToast(`${customer.name} 일정을 등록합니다.`, 'info')}>일정</button>
               </div>
-            </button>
+            </div>
           ))}
         </div>
       </Card>

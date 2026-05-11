@@ -950,13 +950,22 @@ aside[data-sidebar="true"][data-mobile-open="true"] .sidebar-promo {
     top: 0;
     right: 0;
     z-index: 55;
+    pointer-events: auto;
     box-shadow: -4px 0 20px rgba(0,0,0,0.08);
   }
 
   .right-panel-slot,
   .right-panel-slot[data-open="false"] {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
     width: 0;
     min-width: 0;
+    contain: none;
+    overflow: visible;
+    z-index: 56;
+    pointer-events: none;
   }
 
   .right-panel-aside[data-open="true"] {
