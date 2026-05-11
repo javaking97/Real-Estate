@@ -8,7 +8,6 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Avatar } from '@/components/ui/Avatar';
 import { showToast } from '@/components/ui/toast';
 
-const cardIcons = { calendar: AppIcons.calendar, user: AppIcons.users, chat: AppIcons.chat, doc: AppIcons.fileText, contract: AppIcons.template } as const;
 const taskNumColors = ['#EF4444', '#EF4444', '#F59E0B', '#F59E0B', '#8B5CF6'];
 
 const sparkData: Record<string, number[]> = {
@@ -17,14 +16,6 @@ const sparkData: Record<string, number[]> = {
   consult: [1, 3, 2, 4, 3, 2, 2],
   template: [5, 3, 6, 4, 5, 4, 4],
   contract: [4, 5, 6, 5, 7, 6, 6],
-};
-
-const aiInsights: Record<string, string> = {
-  visit: '이번 주 방문 예약이 전주 대비 +40% 증가했습니다. 방문 전 매물 브리핑을 미리 준비하세요.',
-  reply: '5명 중 2명은 오늘 응답 마감입니다. 박OO, 이OO 우선 연락을 권장합니다.',
-  consult: '요약 대기 2건이 48시간을 초과했습니다. AI 자동 요약을 사용해보세요.',
-  template: '4건 중 2건은 매물 노출 기한이 임박했습니다. AI 일괄 생성을 권장합니다.',
-  contract: '진행 중 계약 6건 중 2건이 이번 주 계약 예정입니다.',
 };
 
 function Sparkline({ data, color }: { data: number[]; color: string }) {
@@ -63,11 +54,22 @@ const quickActions = [
 
 export function HomePage() {
   const [expandedTask, setExpandedTask] = React.useState<number | null>(null);
-  const [tooltipCard, setTooltipCard] = React.useState<string | null>(null);
   const d = realEstateMockData;
 
   const todoDone = 2, todoTotal = 6;
   const progressPct = Math.round((todoDone / todoTotal) * 100);
+  const focusTask = d.priorityTasks[0];
+  const focusCustomer = d.customers[0];
+  const focusRecommendation = d.recommendedProperties[0];
+  const focusProperty = focusRecommendation?.properties[0];
+  const focusSchedule = d.schedules[0];
+  const compactMetrics = d.summaryCards.filter((card) => ['reply', 'visit', 'contract'].includes(card.id));
+  const flowSteps = [
+    { label: '고객', value: focusTask.customer, meta: focusCustomer?.interest || '조건 확인' },
+    { label: '추천 매물', value: focusProperty?.name || '조건 매칭 매물', meta: focusProperty ? `${focusProperty.price} · ${focusProperty.match}%` : '매칭 대기' },
+    { label: '문자 초안', value: focusTask.action, meta: '근거 포함 자동 작성' },
+    { label: '일정', value: focusSchedule ? `${focusSchedule.time} ${focusSchedule.title}` : '방문 일정 확정', meta: focusSchedule?.customer || '캘린더 반영' },
+  ];
 
   const togglePriorityTask = (taskId: number) => {
     setExpandedTask((currentTaskId) => currentTaskId === taskId ? null : taskId);
@@ -78,16 +80,56 @@ export function HomePage() {
       <style>{`
         @keyframes pulse-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(1.6); } }
         @keyframes fadeSlideDn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes tooltipFadeSlide { from { opacity:0; transform:translateX(-50%) translateY(-5px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
         .task-expand { animation: fadeSlideDn 0.18s ease; }
         .qa-btn:hover { filter: brightness(0.92); }
+        .home-hero-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.6fr); gap: 14px; margin-bottom: 14px; }
+        .home-focus-card { border: 1px solid #BFDBFE; border-radius: 24px; background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%); box-shadow: 0 18px 48px rgba(15,23,42,0.08); overflow: hidden; }
+        .home-focus-inner { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; padding: 24px; }
+        .home-focus-kicker { display: inline-flex; width: fit-content; align-items: center; gap: 7px; border: 1px solid #DBEAFE; border-radius: 999px; background: #EFF6FF; color: #1D4ED8; padding: 6px 10px; font-size: 12px; font-weight: 900; }
+        .home-focus-title { margin: 14px 0 10px; color: #0F172A; font-size: clamp(24px, 3vw, 36px); font-weight: 900; letter-spacing: -0.04em; line-height: 1.08; text-wrap: balance; }
+        .home-focus-copy { max-width: 680px; margin: 0; color: #475569; font-size: 15px; font-weight: 650; line-height: 1.65; }
+        .home-evidence-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+        .home-evidence-card { border: 1px solid #E2E8F0; border-radius: 16px; background: rgba(255,255,255,0.76); padding: 13px; }
+        .home-evidence-card span { display: block; margin-bottom: 5px; color: #64748B; font-size: 11px; font-weight: 900; letter-spacing: 0.03em; text-transform: uppercase; }
+        .home-evidence-card strong { display: block; color: #111827; font-size: 18px; font-weight: 900; letter-spacing: -0.02em; }
+        .home-evidence-card small { display: block; margin-top: 4px; color: #64748B; font-size: 12px; font-weight: 700; line-height: 1.4; }
+        .home-action-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+        .home-property-board { border: 1px solid #D7DEE8; border-radius: 20px; background: #fff; padding: 16px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8); }
+        .home-map-strip { position: relative; min-height: 128px; overflow: hidden; border-radius: 16px; border: 1px solid #E5E7EB; background: #F8FAFC; background-image: linear-gradient(#E2E8F0 1px, transparent 1px), linear-gradient(90deg, #E2E8F0 1px, transparent 1px); background-size: 32px 32px; }
+        .home-map-route { position: absolute; inset: 20px 28px; border: 2px solid #93C5FD; border-left-color: transparent; border-bottom-color: transparent; border-radius: 999px; transform: rotate(-12deg); }
+        .home-map-pin { position: absolute; width: 12px; height: 12px; border-radius: 999px; background: #2563EB; box-shadow: 0 0 0 6px rgba(37,99,235,0.12); }
+        .home-property-summary { display: grid; gap: 8px; margin-top: 13px; }
+        .home-property-summary strong { color: #111827; font-size: 15px; font-weight: 900; line-height: 1.35; }
+        .home-property-summary span { color: #1D4ED8; font-size: 22px; font-weight: 900; letter-spacing: -0.03em; }
+        .home-property-summary small { color: #64748B; font-size: 12px; font-weight: 750; }
+        .home-side-card { display: flex; flex-direction: column; gap: 10px; border: 1px solid #E2E8F0; border-radius: 20px; background: #fff; padding: 16px; }
+        .home-metric-list { display: grid; gap: 10px; }
+        .home-metric-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; border: 1px solid #EEF2F7; border-radius: 15px; padding: 12px; }
+        .home-metric-card strong { display: block; color: #111827; font-size: 22px; font-weight: 900; letter-spacing: -0.03em; }
+        .home-metric-card span { color: #64748B; font-size: 12px; font-weight: 800; }
+        .home-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 14px; }
+        .home-flow-step { position: relative; border: 1px solid #E2E8F0; border-radius: 18px; background: #fff; padding: 14px; min-height: 104px; }
+        .home-flow-step:not(:last-child)::after { content: ''; position: absolute; top: 50%; right: -10px; width: 10px; height: 1px; background: #CBD5E1; }
+        .home-flow-step span { display: block; color: #64748B; font-size: 11px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
+        .home-flow-step strong { display: block; margin-top: 8px; color: #111827; font-size: 14px; font-weight: 900; line-height: 1.35; }
+        .home-flow-step small { display: block; margin-top: 7px; color: #64748B; font-size: 12px; font-weight: 700; line-height: 1.45; }
+        .home-lower-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+        @media (max-width: 1180px) {
+          .home-hero-grid, .home-focus-inner, .home-lower-grid { grid-template-columns: 1fr; }
+          .home-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .home-flow-step::after { display: none; }
+        }
+        @media (max-width: 720px) {
+          .home-focus-inner { padding: 18px; }
+          .home-evidence-grid, .home-flow { grid-template-columns: 1fr; }
+          .home-focus-title { font-size: 24px; }
+        }
       `}</style>
 
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
         <div>
           <h1 style={{ fontSize: 23, fontWeight: 700, color: '#111827', margin: 0 }}>샘플부동산 비서 브리핑</h1>
-          <p style={{ color: '#6B7280', fontSize: 14, margin: '3px 0 0' }}>홍진영 소장님, 오늘도 좋은 하루 본내세요!</p>
+          <p style={{ color: '#6B7280', fontSize: 14, margin: '3px 0 0' }}>홍진영 소장님, 오늘은 응답 마감 고객부터 처리하면 흐름이 가장 좋습니다.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '5px 10px' }}>
@@ -101,7 +143,69 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* Progress + Quick Actions bar */}
+      <div className="home-hero-grid">
+        <section className="home-focus-card">
+          <div className="home-focus-inner">
+            <div>
+              <span className="home-focus-kicker"><span style={{ width: 7, height: 7, borderRadius: 999, background: '#2563EB' }} />오늘의 최우선 액션</span>
+              <h2 className="home-focus-title"><span style={{ color: '#2563EB' }}>{focusTask.customer}</span> 고객에게 조건 매칭 매물 3건을 보내고 방문 일정까지 확정하세요.</h2>
+              <p className="home-focus-copy">응답 마감이 오늘이고 예산·지역 조건이 맞는 매물이 이미 준비되어 있습니다. 지금 처리하면 문자 작성, 매물 제안, 방문 예약까지 한 번에 이어집니다.</p>
+
+              <div className="home-evidence-grid">
+                <div className="home-evidence-card"><span>근거 01</span><strong>오늘 마감</strong><small>{focusTask.urgency} · 응답 대기 5명 중 우선순위 1</small></div>
+                <div className="home-evidence-card"><span>근거 02</span><strong>{focusProperty?.match || 94}% 매칭</strong><small>{focusCustomer?.region || '관심 지역'} · {focusCustomer?.budget || '예산 조건'} 기준</small></div>
+                <div className="home-evidence-card"><span>근거 03</span><strong>{focusSchedule?.time || '14:00'}</strong><small>가장 빠른 방문 가능 슬롯</small></div>
+              </div>
+
+              <div className="home-action-row">
+                <ActionButton variant="primary" size="md" onClick={() => showToast('문자 초안과 추천 매물 3건을 준비합니다.', 'success')}>문자 초안 만들기</ActionButton>
+                <ActionButton variant="secondary" size="md" onClick={() => showToast('고객 상세와 상담 기록을 엽니다.', 'info')}>고객 상세 보기</ActionButton>
+                <ActionButton variant="outline" size="md" color="#2563EB" onClick={() => showToast('방문 가능 시간을 확인합니다.', 'info')}>일정 확인</ActionButton>
+              </div>
+            </div>
+
+            <aside className="home-property-board" aria-label="추천 매물 위치와 조건 요약">
+              <div className="home-map-strip">
+                <span className="home-map-route" />
+                <span className="home-map-pin" style={{ left: '22%', top: '58%' }} />
+                <span className="home-map-pin" style={{ left: '58%', top: '28%', background: '#10B981', boxShadow: '0 0 0 6px rgba(16,185,129,0.12)' }} />
+                <span className="home-map-pin" style={{ left: '76%', top: '66%', background: '#F59E0B', boxShadow: '0 0 0 6px rgba(245,158,11,0.12)' }} />
+              </div>
+              <div className="home-property-summary">
+                <strong>{focusProperty?.name || '조건 매칭 추천 매물'}</strong>
+                <span>{focusProperty?.price || '예산 내 매물'}</span>
+                <small>{focusProperty ? `${focusProperty.rooms} · ${focusProperty.floor} · ${focusProperty.type}` : focusTask.tags.join(' · ')}</small>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <aside className="home-side-card">
+          <SectionHeader title="핵심 지표" />
+          <div className="home-metric-list">
+            {compactMetrics.map((metric) => (
+              <div key={metric.id} className="home-metric-card">
+                <div>
+                  <strong style={{ color: metric.color }}>{metric.value}<span style={{ marginLeft: 3, color: '#94A3B8', fontSize: 12 }}>{metric.unit}</span></strong>
+                  <span>{metric.label}</span>
+                </div>
+                <Sparkline data={sparkData[metric.id] || [1, 2, 3, 2, 4, 3, 4]} color={metric.color} />
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
+
+      <div className="home-flow">
+        {flowSteps.map((step, index) => (
+          <div key={step.label} className="home-flow-step">
+            <span>{String(index + 1).padStart(2, '0')} · {step.label}</span>
+            <strong>{step.value}</strong>
+            <small>{step.meta}</small>
+          </div>
+        ))}
+      </div>
+
       <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '8px 12px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>오늘 진행률</span>
         <div style={{ width: 100, height: 6, background: '#F3F4F6', borderRadius: 99 }}>
@@ -116,49 +220,12 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* KPI AI insight cards */}
-      <div className="r-grid-kpi" style={{ marginBottom: 10 }}>
-        {d.summaryCards.slice(0, 5).map(c => (
-          <div key={c.id} style={{ position: 'relative' }}
-            onMouseEnter={() => setTooltipCard(c.id)}
-            onMouseLeave={() => setTooltipCard(null)}
-          >
-            <Card hover style={{ padding: '12px 14px', height: '100%', minHeight: 124, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ width: 26, height: 26, borderRadius: 7, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.color }}>
-                  {cardIcons[c.icon as keyof typeof cardIcons]}
-                </div>
-                <span style={{ fontSize: 10, color: '#C4C9D4' }}>7일 ▾</span>
-              </div>
-              <div style={{ margin: '5px 0 3px' }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: c.color, lineHeight: 1 }}>
-                  {c.value}<span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF', marginLeft: 2 }}>{c.unit}</span>
-                </div>
-                <div style={{ fontSize: 12, color: '#6B7280', marginTop: 3, textWrap: 'balance' }}>{c.label}</div>
-              </div>
-              <Sparkline data={sparkData[c.id] || [1, 2, 3, 2, 4, 3, 4]} color={c.color} />
-            </Card>
-            {tooltipCard === c.id && (
-              <div style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: '#1E293B', color: '#fff', borderRadius: 9, padding: '9px 12px', fontSize: 12, lineHeight: 1.55, width: 210, zIndex: 999, boxShadow: '0 6px 24px rgba(0,0,0,0.22)', animation: 'tooltipFadeSlide 0.15s ease', pointerEvents: 'none' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
-                  <span style={{ color: '#60A5FA', display: 'flex' }}>{AppIcons.sparkle}</span>
-                  <span style={{ fontWeight: 700, fontSize: 11, color: '#93C5FD' }}>AI 인사이트</span>
-                </div>
-                {aiInsights[c.id]}
-                <div style={{ position: 'absolute', bottom: -4, left: '50%', transform: 'translateX(-50%) rotate(45deg)', width: 8, height: 8, background: '#1E293B' }} />
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Row 1: Priority Tasks */}
       <div style={{ marginBottom: 10 }}>
         <section style={{ borderRadius: 22, border: '1px solid #E2E8F0', background: '#fff', boxShadow: '0 12px 34px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', padding: '20px 24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span style={{ color: '#2563EB', fontSize: 22, lineHeight: 1 }}>ϟ</span>
-              <span style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-0.02em', color: '#111827' }}>AI가 추천하는 오늘의 우선 업무</span>
+              <span style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-0.02em', color: '#111827' }}>다음 우선 업무 큐</span>
             </div>
             <button style={{ background: 'none', border: 'none', color: '#2563EB', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>전체 보기 →</button>
           </div>
@@ -236,11 +303,11 @@ export function HomePage() {
                             <section>
                               <div className="accordion-section-title" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: 15, fontWeight: 800, color: '#111827' }}>
                                 <IconCircle>✓</IconCircle>
-                                다음 액션
+                                추천 판단
                               </div>
                               <div className="accordion-action-card" style={{ borderRadius: 16, border: '1px solid #E2E8F0', background: '#fff', padding: 18, boxShadow: '0 1px 2px rgba(15,23,42,0.04)' }}>
                                 <div className="accordion-action-title" style={{ fontSize: 15, fontWeight: 800, color: '#111827' }}>{task.action}</div>
-                                <p className="accordion-action-copy" style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.6, color: '#64748B' }}>고객 선호 조건에 맞춰 후속 조치를 진행하세요.</p>
+                                <p className="accordion-action-copy" style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.6, color: '#64748B' }}>근거 데이터가 맞는 경우 바로 연락하거나 일정 확정으로 넘기세요.</p>
                                 <div style={{ marginTop: 16, borderTop: '1px solid #F1F5F9', paddingTop: 16 }}>
                                   <div className="accordion-action-label" style={{ fontSize: 13, fontWeight: 700, color: '#64748B' }}>권장 일정</div>
                                   <div className="accordion-action-deadline" style={{ marginTop: 4, fontSize: 15, fontWeight: 800, color: '#1E293B' }}>{task.urgency}</div>
@@ -260,9 +327,7 @@ export function HomePage() {
         </section>
       </div>
 
-      {/* Row 2: cards */}
-      <div className="r-grid-4">
-        {/* Recent consultations */}
+      <div className="home-lower-grid">
         <Card style={{ padding: 14 }}>
           <SectionHeader title="최근 상담 요약" link="전체 보기" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -285,7 +350,6 @@ export function HomePage() {
           </div>
         </Card>
 
-        {/* Recommended properties */}
         <Card style={{ padding: 14 }}>
           <SectionHeader title="추천 매물 (고객 조건 기반)" link="전체 보기" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -318,7 +382,6 @@ export function HomePage() {
           <button style={{ background: 'none', border: 'none', color: '#2563EB', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4 }}>더 많은 매물 추천 받기 →</button>
         </Card>
 
-        {/* Template tasks */}
         <Card style={{ padding: 14 }}>
           <SectionHeader title="템플릿 작업 대기" link="전체 보기" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

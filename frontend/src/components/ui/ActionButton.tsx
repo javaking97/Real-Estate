@@ -13,7 +13,7 @@ export function ActionButton({ children, variant = 'primary', size = 'sm', color
   const base: CSSProperties = {
     display: 'inline-flex', alignItems: 'center', gap: 5,
     border: 'none', borderRadius: 7, cursor: 'pointer',
-    fontFamily: 'inherit', fontWeight: 500, transition: 'all 0.15s',
+    fontFamily: 'inherit', fontWeight: 500, transition: 'background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s',
     ...(size === 'md' ? { padding: '8px 16px', fontSize: 14 } : { padding: '5px 12px', fontSize: 13 }),
     ...(size === 'xs' ? { padding: '3px 8px', fontSize: 12 } : {}),
   };

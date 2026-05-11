@@ -6,6 +6,7 @@ import { AppIcons } from '@/components/icons/AppIcons';
 import { KpiCardGrid } from '@/components/ui/KpiCardGrid';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { SearchToolbar } from '@/components/ui/SearchToolbar';
+import { useAnimatedPresence } from '@/hooks/useAnimatedPresence';
 
 type ToolCategory = '전체' | '국가 신고' | '실거래/시세' | '등기/대장' | '세무/계산' | '내 사이트';
 type ToolScope = '공용' | '개인';
@@ -72,6 +73,10 @@ export function ToolsPage() {
   const [newBookmark, setNewBookmark] = React.useState({ title: '', url: '', category: '내 사이트' as Exclude<ToolCategory, '전체'>, scope: '개인' as ToolScope, description: '' });
   const [editingBookmark, setEditingBookmark] = React.useState({ title: '', url: '', category: '내 사이트' as Exclude<ToolCategory, '전체'>, scope: '개인' as ToolScope, description: '' });
 
+  const addModalPresence = useAnimatedPresence(addModalOpen, 160);
+  const detailModalPresence = useAnimatedPresence(Boolean(selectedBookmark), 160);
+  const [activeBookmark, setActiveBookmark] = React.useState<WorkToolBookmark | null>(null);
+
   React.useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(bookmarks));
   }, [bookmarks]);
@@ -107,6 +112,7 @@ export function ToolsPage() {
   };
 
   const openDetailModal = (bookmark: WorkToolBookmark) => {
+    setActiveBookmark(bookmark);
     setSelectedBookmark(bookmark);
     setDetailEditMode(false);
     setEditingBookmark({ title: bookmark.title, url: bookmark.url, category: bookmark.category, scope: bookmark.scope, description: bookmark.description });
@@ -149,9 +155,21 @@ export function ToolsPage() {
     };
 
     setBookmarks((currentBookmarks) => currentBookmarks.map((bookmark) => bookmark.id === selectedBookmark.id ? updatedBookmark : bookmark));
+    setActiveBookmark(updatedBookmark);
     setSelectedBookmark(updatedBookmark);
     setDetailEditMode(false);
   };
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (addModalOpen) setAddModalOpen(false);
+        else if (selectedBookmark) closeDetailModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [addModalOpen, selectedBookmark]);
 
   return (
     <div className="tools-page">
@@ -221,9 +239,9 @@ export function ToolsPage() {
         })}
       </div>
 
-      {addModalOpen && (
-        <div className="modal-backdrop tools-modal-backdrop" onMouseDown={() => setAddModalOpen(false)}>
-          <div className="r-modal tools-add-modal" role="dialog" aria-modal="true" aria-labelledby="tools-add-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+      {addModalPresence.present && (
+        <div className="modal-backdrop tools-modal-backdrop" data-transition-status={addModalPresence.transitionStatus} onMouseDown={() => setAddModalOpen(false)}>
+          <div className="r-modal tools-add-modal" data-transition-status={addModalPresence.transitionStatus} role="dialog" aria-modal="true" aria-labelledby="tools-add-modal-title" onMouseDown={(event) => event.stopPropagation()}>
             <div className="tools-add-modal-header">
               <div>
                 <strong id="tools-add-modal-title">사이트 추가</strong>
@@ -268,14 +286,14 @@ export function ToolsPage() {
         </div>
       )}
 
-      {selectedBookmark && (
-        <div className="modal-backdrop tools-modal-backdrop" onMouseDown={closeDetailModal}>
-          <div className="r-modal tools-add-modal tools-detail-modal" role="dialog" aria-modal="true" aria-labelledby="tools-detail-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+      {detailModalPresence.present && activeBookmark && (
+        <div className="modal-backdrop tools-modal-backdrop" data-transition-status={detailModalPresence.transitionStatus} onMouseDown={closeDetailModal}>
+          <div className="r-modal tools-add-modal tools-detail-modal" data-transition-status={detailModalPresence.transitionStatus} role="dialog" aria-modal="true" aria-labelledby="tools-detail-modal-title" onMouseDown={(event) => event.stopPropagation()}>
             <div className="tools-add-modal-header">
               <div className="tools-detail-title-block">
-                <span className="tools-detail-icon" style={{ color: categoryColorMap[selectedBookmark.category], background: `${categoryColorMap[selectedBookmark.category]}12` }}>{AppIcons.link}</span>
+                <span className="tools-detail-icon" style={{ color: categoryColorMap[activeBookmark.category], background: `${categoryColorMap[activeBookmark.category]}12` }}>{AppIcons.link}</span>
                 <div>
-                  <strong id="tools-detail-modal-title">{detailEditMode ? '사이트 수정' : selectedBookmark.title}</strong>
+                  <strong id="tools-detail-modal-title">{detailEditMode ? '사이트 수정' : activeBookmark.title}</strong>
                   <span>{detailEditMode ? '등록된 업무 사이트 정보를 수정합니다.' : '업무 사이트 상세 정보와 링크를 확인합니다.'}</span>
                 </div>
               </div>
@@ -315,27 +333,27 @@ export function ToolsPage() {
             ) : (
               <div className="tools-detail-modal-body">
                 <div className="tools-detail-badge-row">
-                  <Badge color={categoryColorMap[selectedBookmark.category]} bg={`${categoryColorMap[selectedBookmark.category]}14`}>{selectedBookmark.category}</Badge>
-                  <Badge color={selectedBookmark.scope === '공용' ? '#2563EB' : '#64748B'}>{selectedBookmark.scope}</Badge>
-                  {selectedBookmark.required && <Badge color="#EF4444" bg="#FEF2F2" dot>필수</Badge>}
-                  {selectedBookmark.favorite && <Badge color="#F59E0B" bg="#FFFBEB" dot>즐겨찾기</Badge>}
+                  <Badge color={categoryColorMap[activeBookmark.category]} bg={`${categoryColorMap[activeBookmark.category]}14`}>{activeBookmark.category}</Badge>
+                  <Badge color={activeBookmark.scope === '공용' ? '#2563EB' : '#64748B'}>{activeBookmark.scope}</Badge>
+                  {activeBookmark.required && <Badge color="#EF4444" bg="#FEF2F2" dot>필수</Badge>}
+                  {activeBookmark.favorite && <Badge color="#F59E0B" bg="#FFFBEB" dot>즐겨찾기</Badge>}
                 </div>
                 <div className="tools-detail-info-card">
                   <span>설명</span>
-                  <p>{selectedBookmark.description}</p>
+                  <p>{activeBookmark.description}</p>
                 </div>
                 <div className="tools-detail-info-card">
                   <span>외부 링크</span>
-                  <p>{selectedBookmark.url}</p>
+                  <p>{activeBookmark.url}</p>
                 </div>
                 <div className="tools-detail-meta-row">
-                  <span>{selectedBookmark.lastAccessed ? `${new Date(selectedBookmark.lastAccessed).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })} 접속` : '아직 접속 기록 없음'}</span>
+                  <span>{activeBookmark.lastAccessed ? `${new Date(activeBookmark.lastAccessed).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })} 접속` : '아직 접속 기록 없음'}</span>
                 </div>
               </div>
             )}
 
             <div className="tools-add-modal-footer tools-detail-modal-footer">
-              {!selectedBookmark.required && <ActionButton variant="ghost" size="sm" color="#EF4444" onClick={() => deleteBookmark(selectedBookmark.id)}>삭제</ActionButton>}
+              {!activeBookmark.required && <ActionButton variant="ghost" size="sm" color="#EF4444" onClick={() => deleteBookmark(activeBookmark.id)}>삭제</ActionButton>}
               <div>
                 {detailEditMode ? (
                   <>
@@ -345,7 +363,7 @@ export function ToolsPage() {
                 ) : (
                   <>
                     <ActionButton variant="secondary" size="sm" onClick={() => setDetailEditMode(true)}>수정</ActionButton>
-                    <ActionButton variant="primary" size="sm" onClick={() => openBookmark(selectedBookmark)}>사이트 열기 ↗</ActionButton>
+                    <ActionButton variant="primary" size="sm" onClick={() => openBookmark(activeBookmark)}>사이트 열기 ↗</ActionButton>
                   </>
                 )}
               </div>

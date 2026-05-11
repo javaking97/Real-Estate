@@ -8,7 +8,7 @@ export const DrawerPortal = DrawerPrimitive.Portal;
 export const DrawerClose = DrawerPrimitive.Close;
 
 export function DrawerOverlay({ className, ...props }: React.ComponentProps<typeof DrawerPrimitive.Overlay>) {
-  return <DrawerPrimitive.Overlay className={cn('fixed inset-0 z-[399] bg-black/35 backdrop-blur-[2px]', className)} {...props} />;
+  return <DrawerPrimitive.Overlay className={cn('fixed inset-0 z-[399] bg-black/35', className)} {...props} />;
 }
 
 export function DrawerContent({ className, children, ...props }: React.ComponentProps<typeof DrawerPrimitive.Content>) {

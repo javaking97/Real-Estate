@@ -48,7 +48,7 @@ export function DetailModal({ modal, onClose }: DetailModalProps) {
         onClick={onClose}
         className="modal-backdrop"
         data-transition-status={modalPresence.transitionStatus}
-        style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)', border: 'none' }}
+        style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', border: 'none' }}
       />
       <section
         className="r-modal"

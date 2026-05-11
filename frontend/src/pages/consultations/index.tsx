@@ -24,7 +24,15 @@ const consultationStatusConfigMap: Record<string, { color: string; bg: string; s
 
 const consultationFilters: ConsultationFilter[] = ['전체', '응답 대기', '일정 대기', '매물 검색 중', '계약 임박', '만기 임박'];
 
-const consultationTimelineLabels = ['상담 접수', 'AI 요약 생성', '다음 액션 배정'];
+const consultationTimelineLabels = ['상담 접수', '상담 내용 정리', '다음 할 일 지정'];
+
+const consultationStageLabels: Record<string, string> = {
+  '응답 대기': '답변 기다림',
+  '일정 대기': '방문 일정 조율',
+  '매물 검색 중': '조건 맞는 매물 찾기',
+  '계약 임박': '계약 전 확인',
+  '만기 임박': '만기 전 연락 필요',
+};
 
 export function ConsultationsPage() {
   const consultations = realEstateMockData.consultations;
@@ -40,6 +48,8 @@ export function ConsultationsPage() {
     });
   const pendingConsultationCount = consultations.filter((consultation) => consultation.status.includes('대기') || consultation.status.includes('임박')).length;
   const contractReadyCount = consultations.filter((consultation) => consultation.status === '계약 임박').length;
+  const waitingReplyCount = consultations.filter((consultation) => consultation.status === '응답 대기').length;
+  const schedulingCount = consultations.filter((consultation) => consultation.status === '일정 대기').length;
 
   return (
     <div className="consultations-page">
@@ -63,6 +73,13 @@ export function ConsultationsPage() {
         ]}
       />
 
+      <div className="consultations-flow-strip" aria-label="상담 진행 흐름">
+        <FlowStep label="답변 기다림" count={waitingReplyCount} tone="#EF4444" active />
+        <FlowStep label="방문 일정 조율" count={schedulingCount} tone="#F59E0B" />
+        <FlowStep label="조건 맞는 매물 찾기" count={consultations.filter((consultation) => consultation.status === '매물 검색 중').length} tone="#2563EB" />
+        <FlowStep label="계약 전 확인" count={contractReadyCount} tone="#8B5CF6" />
+      </div>
+
       <SearchToolbar
         className="consultations-toolbar"
         searchBoxClassName="consultations-search-box"
@@ -78,7 +95,7 @@ export function ConsultationsPage() {
         middle={(
           <div className="consultations-view-toggle" aria-label="상담 보기 방식">
             <button type="button" className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')}>목록</button>
-            <button type="button" className={viewMode === 'pipeline' ? 'is-active' : ''} onClick={() => setViewMode('pipeline')}>파이프라인</button>
+            <button type="button" className={viewMode === 'pipeline' ? 'is-active' : ''} onClick={() => setViewMode('pipeline')}>진행 단계</button>
           </div>
         )}
       />
@@ -131,6 +148,7 @@ export function ConsultationsPage() {
 
 function ConsultationRow({ consultation, selected, onSelect }: { consultation: ConsultationItem; selected: boolean; onSelect: () => void }) {
   const statusConfig = consultationStatusConfigMap[consultation.status] || { color: '#6B7280', bg: '#F8FAFC', stage: '-' };
+  const stageLabel = consultationStageLabels[consultation.status] || consultation.status;
 
   return (
     <button type="button" className={`consultations-row${selected ? ' is-selected' : ''}`} onClick={onSelect}>
@@ -140,7 +158,7 @@ function ConsultationRow({ consultation, selected, onSelect }: { consultation: C
           <div className="consultations-row-title">
             <strong>{consultation.customer}</strong>
             <Badge color="#6B7280">{consultation.type}</Badge>
-            <Badge color={statusConfig.color} bg={statusConfig.bg} dot>{consultation.status}</Badge>
+            <Badge color={statusConfig.color} bg={statusConfig.bg} dot>{stageLabel}</Badge>
           </div>
           <p>{consultation.summary}</p>
         </div>
@@ -148,13 +166,24 @@ function ConsultationRow({ consultation, selected, onSelect }: { consultation: C
       <div className="consultations-row-meta">
         <span>{consultation.date}</span>
         <strong>{consultation.nextAction}</strong>
+        <em>바로 처리</em>
       </div>
     </button>
   );
 }
 
+function FlowStep({ label, count, tone, active }: { label: string; count: number; tone: string; active?: boolean }) {
+  return (
+    <div className={`consultations-flow-step${active ? ' is-active' : ''}`} style={{ '--step-tone': tone } as React.CSSProperties}>
+      <span>{label}</span>
+      <strong>{count}건</strong>
+    </div>
+  );
+}
+
 function ConsultationDetailPanel({ consultation }: { consultation: ConsultationItem }) {
   const statusConfig = consultationStatusConfigMap[consultation.status] || { color: '#6B7280', bg: '#F8FAFC', stage: '-' };
+  const stageLabel = consultationStageLabels[consultation.status] || consultation.status;
 
   return (
     <Card style={{ padding: 0, overflow: 'hidden' }}>
@@ -168,18 +197,22 @@ function ConsultationDetailPanel({ consultation }: { consultation: ConsultationI
             </div>
           </div>
           <div className="consultations-detail-badges">
-            <Badge color={statusConfig.color} bg={statusConfig.bg} dot>{consultation.status}</Badge>
+            <Badge color={statusConfig.color} bg={statusConfig.bg} dot>{stageLabel}</Badge>
             <Badge color="#6B7280">{consultation.type}</Badge>
           </div>
         </div>
 
-        <div className="consultations-ai-summary">
-          <span>AI 요약</span>
-          <p>{consultation.summary} {consultation.nextAction}을 오늘 안에 처리하면 전환 흐름을 유지할 수 있습니다.</p>
+        <div className="consultations-decision-block">
+          <span>상담 판단</span>
+          <div className="consultations-evidence-grid">
+            <div><strong>상담 내용</strong><p>{consultation.summary}</p></div>
+            <div><strong>진행 상태</strong><p>{stageLabel}</p></div>
+          </div>
+          <p>{consultation.nextAction}을 먼저 처리하면 다음 단계로 넘길 수 있습니다.</p>
         </div>
 
         <div className="consultations-next-action">
-          <span>다음 액션</span>
+          <span>다음 할 일</span>
           <strong>{consultation.nextAction}</strong>
           <ActionButton variant="primary" size="sm" onClick={() => showToast('액션 처리를 진행합니다.', 'info')}>처리하기</ActionButton>
         </div>

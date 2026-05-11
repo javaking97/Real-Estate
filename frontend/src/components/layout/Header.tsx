@@ -25,6 +25,8 @@ export function Header({ onSearch, onMenuToggle }: HeaderProps) {
   const notificationOpen = useUiStore((state) => state.notificationOpen);
   const toggleNotification = useUiStore((state) => state.toggleNotification);
   const closeNotification = useUiStore((state) => state.closeNotification);
+  const toggleRightPanel = useUiStore((state) => state.toggleRightPanel);
+  const rightPanelOpen = useUiStore((state) => state.rightPanelOpen);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const searchPopoverRootRef = React.useRef<HTMLDivElement | null>(null);
   const notificationTriggerRef = React.useRef<HTMLButtonElement | null>(null);
@@ -165,6 +167,37 @@ export function Header({ onSearch, onMenuToggle }: HeaderProps) {
         <div className="header-time" style={{ padding: '5px 10px', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 7, fontSize: 13, fontWeight: 600, color: '#475569', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
           {now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
         </div>
+        
+        <button
+          type="button"
+          onClick={() => {
+            setMenuOpen(false);
+            setShowAutocomplete(false);
+            closeNotification();
+            toggleRightPanel();
+          }}
+          className="navatar-trigger"
+          title="샘플부동산 비서"
+          style={{ 
+            background: rightPanelOpen ? '#EFF6FF' : 'none', 
+            border: 'none', 
+            cursor: 'pointer', 
+            color: rightPanelOpen ? '#2563EB' : '#6B7280', 
+            padding: '6px 8px', 
+            borderRadius: 8, 
+            flexShrink: 0, 
+            transition: 'background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s',
+            fontSize: 14,
+            fontWeight: 800,
+            fontFamily: 'inherit',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          AI
+        </button>
+
         <button
           ref={notificationTriggerRef}
           type="button"

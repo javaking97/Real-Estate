@@ -1,6 +1,7 @@
 import React from 'react';
 import { realEstateMockData } from '@/lib/mock-data';
 import { AppIcons } from '@/components/icons/AppIcons';
+import { useUiStore } from '@/app/store/ui';
 
 type PanelTab = 'chat' | 'quick';
 type MessageRole = 'assistant' | 'user';
@@ -9,6 +10,8 @@ type QuickAction = { label: string; icon: React.ReactNode; color: string };
 
 export const RightPanel = () => {
   const [tab, setTab] = React.useState<PanelTab>('chat');
+  const rightPanelOpen = useUiStore(state => state.rightPanelOpen);
+  const toggleRightPanel = useUiStore(state => state.toggleRightPanel);
   const [messages, setMessages] = React.useState<ChatMessage[]>([
     { role: 'assistant', content: '안녕하세요! 샘플부동산 비서입니다.\n무엇을 도와드릴까요?' },
   ]);
@@ -19,10 +22,10 @@ export const RightPanel = () => {
   const messagesEndRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
-    if (messagesEndRef.current?.parentElement) {
+    if (rightPanelOpen && messagesEndRef.current?.parentElement) {
       messagesEndRef.current.parentElement.scrollTop = messagesEndRef.current.offsetTop;
     }
-  }, [messages]);
+  }, [messages, rightPanelOpen]);
 
   const quickReplies = [
     '박OO 고객에게 보낼 매물 안내 문자 작성해줘',
@@ -66,33 +69,45 @@ export const RightPanel = () => {
   const deleteMemo = (index: number) => setMemos(prev => prev.filter((_, memoIndex) => memoIndex !== index));
 
   return (
-    <aside data-right-panel="true" style={{
-      width: 280, minWidth: 280, height: '100vh', position: 'sticky', top: 0,
-      background: '#fff', borderLeft: '1px solid #E5E7EB',
-      display: 'flex', flexDirection: 'column', flexShrink: 0,
-    }}>
-      {/* Panel header */}
-      <div style={{ padding: '14px 16px 0', borderBottom: '1px solid #F3F4F6' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-          <span style={{ fontSize: 17, color: '#2563EB' }}>{AppIcons.sparkle}</span>
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>샘플부동산 비서</span>
-        </div>
-        <div style={{ display: 'flex', gap: 0, background: '#F3F4F6', borderRadius: 8, padding: 3 }}>
-          {(['chat', 'quick'] as PanelTab[]).map((t) => (
-            <button key={t} onClick={() => setTab(t)} style={{
-              flex: 1, padding: '6px 0', borderRadius: 6, border: 'none',
-              background: tab === t ? '#fff' : 'transparent',
-              color: tab === t ? '#111827' : '#6B7280',
-              fontSize: 13, fontWeight: tab === t ? 600 : 400,
-              cursor: 'pointer', fontFamily: 'inherit',
-              boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s',
-            }}>
-              {t === 'chat' ? '대화하기' : '빠른 실행'}
-            </button>
-          ))}
-        </div>
-      </div>
+    <>
+      <div className="right-panel-backdrop" data-open={rightPanelOpen} onClick={toggleRightPanel} />
+      <div className="right-panel-slot" data-open={rightPanelOpen}>
+        <aside data-right-panel="true" data-open={rightPanelOpen} className="right-panel-aside">
+          <div style={{ width: 280, display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Panel header */}
+          <div style={{ padding: '14px 16px 0', borderBottom: '1px solid #F3F4F6' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 14, fontWeight: 900, color: '#2563EB', background: '#EFF6FF', padding: '4px 6px', borderRadius: 6, lineHeight: 1 }}>AI</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>샘플부동산 비서</span>
+              </div>
+              <button 
+                onClick={toggleRightPanel}
+                className="right-panel-close-btn"
+                style={{ 
+                  background: 'none', border: 'none', padding: 4, cursor: 'pointer', 
+                  color: '#9CA3AF'
+                }}
+              >
+                {AppIcons.x}
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 0, background: '#F3F4F6', borderRadius: 8, padding: 3 }}>
+              {(['chat', 'quick'] as PanelTab[]).map((t) => (
+                <button key={t} onClick={() => setTab(t)} style={{
+                  flex: 1, padding: '6px 0', borderRadius: 6, border: 'none',
+                  background: tab === t ? '#fff' : 'transparent',
+                  color: tab === t ? '#111827' : '#6B7280',
+                  fontSize: 13, fontWeight: tab === t ? 600 : 400,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                  boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
+                }}>
+                  {t === 'chat' ? '대화하기' : '빠른 실행'}
+                </button>
+              ))}
+            </div>
+          </div>
 
       {tab === 'chat' ? (
         <>
@@ -149,7 +164,7 @@ export const RightPanel = () => {
                 <button key={i} onClick={() => sendMessage(qr)} style={{
                   background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8,
                   padding: '7px 10px', fontSize: 12, color: '#374151', cursor: 'pointer',
-                  fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
+                  fontFamily: 'inherit', textAlign: 'left', transition: 'background 0.15s, border-color 0.15s',
                 }}
                   onMouseEnter={e => e.currentTarget.style.background = '#EFF6FF'}
                   onMouseLeave={e => e.currentTarget.style.background = '#F9FAFB'}>
@@ -182,7 +197,7 @@ export const RightPanel = () => {
                   background: input.trim() ? '#2563EB' : '#E5E7EB',
                   color: '#fff', cursor: input.trim() ? 'pointer' : 'default',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, transition: 'all 0.15s',
+                  flexShrink: 0, transition: 'background 0.15s',
                 }}
               >
                 {AppIcons.send}
@@ -199,7 +214,7 @@ export const RightPanel = () => {
                 display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
                 background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 9,
                 cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
-                transition: 'all 0.15s',
+                transition: 'background 0.15s, border-color 0.15s',
               }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#EFF6FF'; e.currentTarget.style.borderColor = '#BFDBFE'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#F9FAFB'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
@@ -239,7 +254,10 @@ export const RightPanel = () => {
             </div>
           ))}
         </div>
+          </div>
+        </div>
+        </aside>
       </div>
-    </aside>
+    </>
   );
 };

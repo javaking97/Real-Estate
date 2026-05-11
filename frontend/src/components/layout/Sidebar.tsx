@@ -84,7 +84,7 @@ export function Sidebar({ mobileOpen, mobileState, onMobileClose }: SidebarProps
                 background: active ? '#2563EB' : 'transparent',
                 color: active ? '#fff' : '#94A3B8',
                 cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: active ? 600 : 400,
-                textAlign: 'left', transition: 'all 0.15s',
+                textAlign: 'left', transition: 'background 0.15s, color 0.15s',
               }}
               onMouseEnter={(event) => {
                 if (!active) {

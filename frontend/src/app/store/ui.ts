@@ -3,18 +3,24 @@ import { create } from 'zustand';
 interface UiState {
   mobileSidebarOpen: boolean;
   notificationOpen: boolean;
+  rightPanelOpen: boolean;
   closeMobileSidebar: () => void;
   toggleMobileSidebar: () => void;
   closeNotification: () => void;
   toggleNotification: () => void;
+  closeRightPanel: () => void;
+  toggleRightPanel: () => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
   mobileSidebarOpen: false,
   notificationOpen: false,
+  rightPanelOpen: false,
 
   closeMobileSidebar: () => set({ mobileSidebarOpen: false }),
   toggleMobileSidebar: () => set((state) => ({ mobileSidebarOpen: !state.mobileSidebarOpen })),
   closeNotification: () => set({ notificationOpen: false }),
   toggleNotification: () => set((state) => ({ notificationOpen: !state.notificationOpen })),
+  closeRightPanel: () => set({ rightPanelOpen: false }),
+  toggleRightPanel: () => set((state) => ({ rightPanelOpen: !state.rightPanelOpen })),
 }));

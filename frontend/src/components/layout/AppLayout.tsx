@@ -14,7 +14,7 @@ export function AppLayout() {
   return (
     <div style={{ display: 'flex', height: '100vh', fontFamily: '"Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif', background: '#F0F3F9', overflow: 'hidden' }}>
       <Sidebar />
-      <Drawer direction="left" open={mobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
+      <Drawer direction="left" open={mobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()} dismissible={false}>
         <DrawerContent>
           <Sidebar mobileOpen onMobileClose={closeMobileSidebar} />
         </DrawerContent>

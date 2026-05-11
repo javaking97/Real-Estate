@@ -2,6 +2,7 @@ import React from 'react';
 import { AppIcons } from '@/components/icons/AppIcons';
 import { realEstateMockData, type NotificationItem, type NotificationType } from '@/lib/mock-data';
 import { useAnimatedPresence } from '@/hooks/useAnimatedPresence';
+import { useUiStore } from '@/app/store/ui';
 
 type NotificationFilter = '전체' | '긴급' | '일정' | 'AI';
 
@@ -29,6 +30,7 @@ const notificationColorMap: Record<NotificationType, string> = {
 export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
   const [filter, setFilter] = React.useState<NotificationFilter>('전체');
   const panelPresence = useAnimatedPresence(open);
+  const rightPanelOpen = useUiStore(state => state.rightPanelOpen);
 
   if (!panelPresence.present) {
     return null;
@@ -49,7 +51,7 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
       <button
         aria-label="알림 패널 닫기"
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.15)', border: 'none' }}
+        style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'transparent', border: 'none' }}
       />
 
       <section
@@ -59,7 +61,7 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
         style={{
           position: 'fixed',
           top: 62,
-          right: 292,
+          right: rightPanelOpen ? 292 : 12,
           width: 360,
           zIndex: 201,
           background: '#fff',
