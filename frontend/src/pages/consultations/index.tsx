@@ -1,4 +1,5 @@
 import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { realEstateMockData } from '@/lib/mock-data';
 import { Badge } from '@/components/ui/Badge';
 import { ActionButton } from '@/components/ui/ActionButton';
@@ -35,8 +36,14 @@ const consultationStageLabels: Record<string, string> = {
 };
 
 export function ConsultationsPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const consultations = realEstateMockData.consultations;
-  const [selectedConsultation, setSelectedConsultation] = React.useState<ConsultationItem>(consultations[0]);
+  
+  const selectedConsultation = id 
+    ? (consultations.find(c => c.id.toString() === id) || consultations[0])
+    : consultations[0];
+
   const [activeFilter, setActiveFilter] = React.useState<ConsultationFilter>('전체');
   const [viewMode, setViewMode] = React.useState<ConsultationViewMode>('list');
   const [searchKeyword, setSearchKeyword] = React.useState('');
@@ -67,9 +74,29 @@ export function ConsultationsPage() {
         labelClassName="consultations-kpi-label"
         valueClassName="consultations-kpi-value"
         items={[
-          { label: '이번 주 상담', value: consultations.length, unit: '건' },
-          { label: '후속 조치', value: pendingConsultationCount, unit: '건', valueClassName: 'accent-red' },
-          { label: '계약 임박', value: contractReadyCount, unit: '건', valueClassName: 'accent-purple' },
+          {
+            label: '이번 주 상담',
+            value: consultations.length,
+            unit: '건',
+            delta: { trend: 'up', label: '+18% 전주' },
+            sparkline: { data: [3, 5, 2, 6, 4, 3, 5], color: 'var(--color-domain-consultations)' },
+          },
+          {
+            label: '후속 조치',
+            value: pendingConsultationCount,
+            unit: '건',
+            valueClassName: 'accent-red',
+            delta: { trend: 'flat', label: `응답 대기 ${waitingReplyCount}` },
+            sparkline: { data: [4, 5, 5, 6, 5, 4, 5], color: 'var(--color-danger)' },
+          },
+          {
+            label: '계약 임박',
+            value: contractReadyCount,
+            unit: '건',
+            valueClassName: 'accent-purple',
+            delta: { trend: 'up', label: `일정 ${schedulingCount}건` },
+            sparkline: { data: [1, 1, 2, 2, 3, 3, 4], color: 'var(--color-domain-consultations)' },
+          },
         ]}
       />
 
@@ -109,7 +136,7 @@ export function ConsultationsPage() {
                   key={consultation.id}
                   consultation={consultation}
                   selected={selectedConsultation.id === consultation.id}
-                  onSelect={() => setSelectedConsultation(consultation)}
+                  onSelect={() => navigate(consultation.id.toString())}
                 />
               ))}
               {filteredConsultations.length === 0 && <EmptyResult title="조건에 맞는 상담이 없습니다" description="검색어나 상담 상태 필터를 초기화해 다시 확인하세요." buttonLabel="전체 상담 보기" className="consultations-empty-state" onReset={() => { setSearchKeyword(''); setActiveFilter('전체'); }} />}
@@ -127,7 +154,7 @@ export function ConsultationsPage() {
                       <span>{statusConsultations.length}</span>
                     </div>
                     {statusConsultations.map((consultation) => (
-                      <button key={consultation.id} type="button" className="consultations-pipeline-card" onClick={() => setSelectedConsultation(consultation)}>
+                      <button key={consultation.id} type="button" className="consultations-pipeline-card" onClick={() => navigate(consultation.id.toString())}>
                         <strong>{consultation.customer}</strong>
                         <span>{consultation.nextAction}</span>
                         <Badge color={config.color} bg={config.bg}>{consultation.type}</Badge>

@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { RightPanel } from '@/components/RightPanel';
-import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from '@/components/ui/drawer';
 import { Toaster } from '@/components/ui/sonner';
 import { useUiStore } from '@/app/store/ui';
 
@@ -12,16 +12,18 @@ export function AppLayout() {
   const toggleMobileSidebar = useUiStore((state) => state.toggleMobileSidebar);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: '"Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif', background: '#F0F3F9', overflow: 'hidden' }}>
+    <div className="app-layout">
       <Sidebar />
-      <Drawer direction="left" open={mobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()} dismissible={false}>
+      <Drawer direction="left" open={mobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
         <DrawerContent>
+          <DrawerTitle className="sr-only">모바일 메뉴</DrawerTitle>
+          <DrawerDescription className="sr-only">주요 화면으로 이동하는 사이드바 메뉴입니다.</DrawerDescription>
           <Sidebar mobileOpen onMobileClose={closeMobileSidebar} />
         </DrawerContent>
       </Drawer>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div className="main-content">
         <Header onMenuToggle={toggleMobileSidebar} />
-        <main data-main="true" style={{ flex: 1, overflowY: 'auto', padding: '18px 20px 20px' }}>
+        <main data-main="true" className="main-container">
           <Outlet />
         </main>
       </div>

@@ -171,7 +171,7 @@ export function TodayPage() {
           <span>완료율</span>
           <strong>{progressPercent}%</strong>
           <div className="today-progress-track"><div style={{ width: `${progressPercent}%` }} /></div>
-          <small>{completedTodoCount}/{todos.length} 완료 · 남은 업무 {pendingTodos.length}건</small>
+          <small>{completedTodoCount}/{todos.length} 완료 · 남은 항목 {pendingTodos.length}개</small>
         </div>
         <div className="today-next-card">
           <span>다음 일정</span>

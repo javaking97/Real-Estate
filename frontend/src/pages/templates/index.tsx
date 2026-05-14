@@ -1,9 +1,9 @@
 import React from 'react';
+import { useNavigate, Outlet } from 'react-router-dom';
 import { realEstateMockData } from '@/lib/mock-data';
 import { Badge } from '@/components/ui/Badge';
 import { ActionButton } from '@/components/ui/ActionButton';
 import { AppIcons } from '@/components/icons/AppIcons';
-import { DetailModal, type DetailModalPayload } from '@/components/modals/DetailModal';
 import { KpiCardGrid } from '@/components/ui/KpiCardGrid';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -28,8 +28,8 @@ const channelIconMap: Record<string, React.ReactNode> = {
 const templateStatusFilters: TemplateStatusFilter[] = ['전체', '작성 완료', '작성 대기', '초안 생성 중', '미작성'];
 
 export function TemplatesPage() {
+  const navigate = useNavigate();
   const templates = realEstateMockData.templates;
-  const [modal, setModal] = React.useState<DetailModalPayload | null>(null);
   const [activeFilter, setActiveFilter] = React.useState<TemplateStatusFilter>('전체');
   const filteredTemplates = templates.filter((template) => activeFilter === '전체' || template.status === activeFilter);
   const completedTemplateCount = templates.filter((template) => template.status === '작성 완료').length;
@@ -57,9 +57,29 @@ export function TemplatesPage() {
         labelClassName="templates-kpi-label"
         valueClassName="templates-kpi-value"
         items={[
-          { label: '전체 템플릿', value: templates.length, unit: '개' },
-          { label: '작성 완료', value: completedTemplateCount, unit: '개', valueClassName: 'accent-green' },
-          { label: 'AI 작성 필요', value: aiReadyCount, unit: '개', valueClassName: 'accent-orange' },
+          {
+            label: '전체 템플릿',
+            value: templates.length,
+            unit: '개',
+            delta: { trend: 'up', label: '+3 이번 주' },
+            sparkline: { data: [12, 12, 13, 14, 15, 15, 16], color: 'var(--color-brand)' },
+          },
+          {
+            label: '작성 완료',
+            value: completedTemplateCount,
+            unit: '개',
+            valueClassName: 'accent-green',
+            delta: { trend: 'up', label: '+2 전일' },
+            sparkline: { data: [6, 7, 8, 8, 9, 10, 11], color: 'var(--color-success)' },
+          },
+          {
+            label: 'AI 작성 필요',
+            value: aiReadyCount,
+            unit: '개',
+            valueClassName: 'accent-orange',
+            delta: { trend: 'down', label: `대기 ${pendingTemplateCount}개` },
+            sparkline: { data: [5, 4, 4, 3, 3, 2, 2], color: 'var(--color-warn)' },
+          },
         ]}
       />
 
@@ -76,7 +96,7 @@ export function TemplatesPage() {
           const statusConfig = templateStatusConfigMap[template.status] || templateStatusConfigMap.미작성;
 
           return (
-            <button key={template.id} type="button" className="templates-card" onClick={() => setModal({ type: 'template', data: template })}>
+            <div key={template.id} className="templates-card" onClick={() => navigate(template.id.toString())}>
               <div className="templates-card-icon" style={{ color: statusConfig.color, background: statusConfig.bg }}>
                 {channelIconMap[template.channel] || AppIcons.fileText}
               </div>
@@ -97,16 +117,16 @@ export function TemplatesPage() {
                     {template.status === '미작성' || template.status === '작성 대기'
                       ? <ActionButton variant="primary" size="xs">AI로 작성하기</ActionButton>
                       : <ActionButton variant="secondary" size="xs">수정하기</ActionButton>}
-                    <ActionButton variant="outline" size="xs" onClick={() => setModal({ type: 'template', data: template })}>미리보기</ActionButton>
+                    <ActionButton variant="outline" size="xs" onClick={() => navigate(template.id.toString())}>미리보기</ActionButton>
                   </div>
                 </div>
               </div>
-            </button>
+            </div>
           );
         })}
       </div>
 
-      <DetailModal modal={modal} onClose={() => setModal(null)} />
+      <Outlet />
     </div>
   );
 }

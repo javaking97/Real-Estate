@@ -21,22 +21,22 @@ const managerRankingItems = [
 ];
 
 const regionDemandItems = [
-  { region: '강남/서초', demand: 42, color: '#2563EB' },
-  { region: '마포/용산', demand: 28, color: '#10B981' },
-  { region: '송파/강동', demand: 18, color: '#F59E0B' },
-  { region: '성동/광진', demand: 12, color: '#8B5CF6' },
+  { region: '강남/서초', demand: 42, color: 'var(--color-brand)' },
+  { region: '마포/용산', demand: 28, color: 'var(--color-success)' },
+  { region: '송파/강동', demand: 18, color: 'var(--color-warn)' },
+  { region: '성동/광진', demand: 12, color: 'var(--color-domain-consultations)' },
 ];
 
 const funnelItems = [
-  { label: '상담', value: 23, color: '#93C5FD' },
-  { label: '방문', value: 12, color: '#2563EB' },
-  { label: '계약', value: 4, color: '#8B5CF6' },
+  { label: '상담', value: 23, color: 'color-mix(in oklch, var(--color-brand), transparent 40%)' },
+  { label: '방문', value: 12, color: 'var(--color-brand)' },
+  { label: '계약', value: 4, color: 'var(--color-domain-consultations)' },
 ];
 
 const insightItems = [
-  { title: '목요일 전환율 집중', text: '목요일 상담 이후 방문 전환율이 가장 높습니다. 다음 주 방문 슬롯을 목요일 오후에 우선 확보하세요.', color: '#2563EB' },
-  { title: '강남/서초 수요 우세', text: '강남/서초 문의 비중이 42%로 가장 높습니다. 전세 8억 이하 매물 확보가 우선입니다.', color: '#10B981' },
-  { title: '계약 병목 구간', text: '방문 이후 계약 전환이 33%입니다. 방문 후 24시간 내 후속 연락 자동화를 권장합니다.', color: '#F59E0B' },
+  { title: '목요일 전환율 집중', text: '목요일 상담 이후 방문 전환율이 가장 높습니다. 다음 주 방문 슬롯을 목요일 오후에 우선 확보하세요.', color: 'var(--color-brand)' },
+  { title: '강남/서초 수요 우세', text: '강남/서초 문의 비중이 42%로 가장 높습니다. 전세 8억 이하 매물 확보가 우선입니다.', color: 'var(--color-success)' },
+  { title: '계약 병목 구간', text: '방문 이후 계약 전환이 33%입니다. 방문 후 24시간 내 후속 연락 자동화를 권장합니다.', color: 'var(--color-warn)' },
 ];
 
 export function AnalyticsPage() {
@@ -74,15 +74,26 @@ export function AnalyticsPage() {
         items={[
           {
             label: '총 상담',
-            children: <><div className="analytics-kpi-value">{totalConsultationCount}<span>건</span></div><Badge color="#10B981" bg="#ECFDF5">↑ 전주 대비 +23%</Badge></>,
+            value: totalConsultationCount,
+            unit: '건',
+            delta: { trend: 'up', label: '+23% 전주' },
+            sparkline: { data: weeklyData.map((week) => week.consult), color: 'var(--color-brand)' },
           },
           {
             label: '방문 전환율',
-            children: <><div className="analytics-kpi-value accent-blue">{visitConversionRate}<span>%</span></div><Badge color="#2563EB" bg="#EFF6FF">방문 {totalVisitCount}건</Badge></>,
+            value: visitConversionRate,
+            unit: '%',
+            valueClassName: 'accent-blue',
+            delta: { trend: 'up', label: `방문 ${totalVisitCount}건` },
+            sparkline: { data: weeklyData.map((week) => week.visit), color: 'var(--color-brand)' },
           },
           {
             label: '계약 전환율',
-            children: <><div className="analytics-kpi-value accent-purple">{contractConversionRate}<span>%</span></div><Badge color="#8B5CF6" bg="#F5F3FF">계약 {totalContractCount}건</Badge></>,
+            value: contractConversionRate,
+            unit: '%',
+            valueClassName: 'accent-purple',
+            delta: { trend: 'flat', label: `계약 ${totalContractCount}건` },
+            sparkline: { data: weeklyData.map((week) => week.contract), color: 'var(--color-domain-consultations)' },
           },
         ]}
       />
@@ -91,7 +102,7 @@ export function AnalyticsPage() {
         <Card style={{ padding: 18 }}>
           <div className="analytics-section-header">
             <div><span>{AppIcons.barChart}</span><strong>이번 주 성과 추세</strong></div>
-            <Badge color="#10B981" bg="#ECFDF5">↑ +23%</Badge>
+            <Badge color="var(--color-success)" bg="color-mix(in oklch, var(--color-success), transparent 92%)">↑ +23%</Badge>
           </div>
           <div className="analytics-stacked-chart">
             {weeklyData.map((week) => {
@@ -102,9 +113,9 @@ export function AnalyticsPage() {
                 <div key={week.day} className="analytics-chart-column">
                   <span>{total}</span>
                   <div style={{ height: chartHeight }}>
-                    <i style={{ height: `${(week.contract / total) * 100}%`, background: '#8B5CF6' }} />
-                    <i style={{ height: `${(week.visit / total) * 100}%`, background: '#2563EB' }} />
-                    <i style={{ height: `${(week.consult / total) * 100}%`, background: '#93C5FD' }} />
+                    <i style={{ height: `${(week.contract / total) * 100}%`, background: 'var(--color-domain-consultations)' }} />
+                    <i style={{ height: `${(week.visit / total) * 100}%`, background: 'var(--color-brand)' }} />
+                    <i style={{ height: `${(week.consult / total) * 100}%`, background: 'color-mix(in oklch, var(--color-brand), transparent 60%)' }} />
                   </div>
                   <strong>{week.day}</strong>
                 </div>
@@ -112,9 +123,9 @@ export function AnalyticsPage() {
             })}
           </div>
           <div className="analytics-legend">
-            <span><i style={{ background: '#93C5FD' }} />상담 {totalConsultationCount}건</span>
-            <span><i style={{ background: '#2563EB' }} />방문 {totalVisitCount}건</span>
-            <span><i style={{ background: '#8B5CF6' }} />계약 {totalContractCount}건</span>
+            <span><i style={{ background: 'color-mix(in oklch, var(--color-brand), transparent 60%)' }} />상담 {totalConsultationCount}건</span>
+            <span><i style={{ background: 'var(--color-brand)' }} />방문 {totalVisitCount}건</span>
+            <span><i style={{ background: 'var(--color-domain-consultations)' }} />계약 {totalContractCount}건</span>
           </div>
         </Card>
 
@@ -143,7 +154,7 @@ export function AnalyticsPage() {
               <div key={manager.name}>
                 <span>{index + 1}</span>
                 <div><strong>{manager.name}</strong><small>상담 {manager.consult}건 · 계약 {manager.contract}건</small></div>
-                <Badge color="#2563EB" bg="#EFF6FF">{manager.conversion}%</Badge>
+                <Badge color="var(--color-brand)" bg="color-mix(in oklch, var(--color-brand), transparent 92%)">{manager.conversion}%</Badge>
               </div>
             ))}
           </div>
@@ -161,7 +172,7 @@ export function AnalyticsPage() {
           </div>
         </Card>
 
-        <Card style={{ padding: 18, borderColor: '#BAE6FD', background: 'linear-gradient(180deg, #fff 0%, #F0F9FF 100%)' }}>
+        <Card style={{ padding: 18, borderColor: 'color-mix(in oklch, var(--color-brand), transparent 70%)', background: 'linear-gradient(180deg, var(--color-surface) 0%, color-mix(in oklch, var(--color-brand), transparent 96%) 100%)' }}>
           <div className="analytics-section-header"><div><span>{AppIcons.sparkle}</span><strong>AI 인사이트</strong></div></div>
           <div className="analytics-insight-list">
             {insightItems.map((insight) => (

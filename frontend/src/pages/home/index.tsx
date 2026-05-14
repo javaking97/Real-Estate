@@ -6,35 +6,23 @@ import { ActionButton } from '@/components/ui/ActionButton';
 import { Card } from '@/components/ui/Card';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Avatar } from '@/components/ui/Avatar';
+import { Sparkline } from '@/components/ui/Sparkline';
 import { showToast } from '@/components/ui/toast';
 
 const taskNumColors = ['#EF4444', '#EF4444', '#F59E0B', '#F59E0B', '#8B5CF6'];
 
-const sparkData: Record<string, number[]> = {
-  visit: [2, 3, 1, 4, 3, 5, 3],
-  reply: [6, 4, 7, 5, 8, 6, 5],
-  consult: [1, 3, 2, 4, 3, 2, 2],
-  template: [5, 3, 6, 4, 5, 4, 4],
-  contract: [4, 5, 6, 5, 7, 6, 6],
+type MetricTrend = 'up' | 'down' | 'flat';
+type MetricInsight = { spark: number[]; deltaLabel: string; trend: MetricTrend };
+
+const metricInsightMap: Record<string, MetricInsight> = {
+  visit: { spark: [2, 3, 1, 4, 3, 5, 3], deltaLabel: '+12% 전주', trend: 'up' },
+  reply: { spark: [6, 4, 7, 5, 8, 6, 5], deltaLabel: '+3 미응답', trend: 'down' },
+  consult: { spark: [1, 3, 2, 4, 3, 2, 2], deltaLabel: '동일 수준', trend: 'flat' },
+  template: { spark: [5, 3, 6, 4, 5, 4, 4], deltaLabel: '+2 완료', trend: 'up' },
+  contract: { spark: [4, 5, 6, 5, 7, 6, 6], deltaLabel: '+18% 전주', trend: 'up' },
 };
 
-function Sparkline({ data, color }: { data: number[]; color: string }) {
-  const w = 104, h = 34;
-  const min = Math.min(...data), max = Math.max(...data);
-  const range = max - min || 1;
-  const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w;
-    const y = h - ((v - min) / range) * (h - 6) - 3;
-    return x + ',' + y;
-  }).join(' ');
-  const areaClose = w + ',' + h + ' 0,' + h;
-  return (
-    <svg width={w} height={h} style={{ display: 'block', overflow: 'visible' }}>
-      <polyline points={'0,' + h + ' ' + pts + ' ' + areaClose} fill={color} fillOpacity="0.12" stroke="none" />
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+const trendGlyph: Record<MetricTrend, string> = { up: '▲', down: '▼', flat: '—' };
 
 const marketData = [
   { area: '강남구', type: '전세', price: '8.2억', change: +2.1, trend: 'up' },
@@ -105,8 +93,14 @@ export function HomePage() {
         .home-side-card { display: flex; flex-direction: column; gap: 10px; border: 1px solid #E2E8F0; border-radius: 20px; background: #fff; padding: 16px; }
         .home-metric-list { display: grid; gap: 10px; }
         .home-metric-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; border: 1px solid #EEF2F7; border-radius: 15px; padding: 12px; }
-        .home-metric-card strong { display: block; color: #111827; font-size: 22px; font-weight: 900; letter-spacing: -0.03em; }
+        .home-metric-card > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .home-metric-card strong { display: block; color: #111827; font-size: 22px; font-weight: 900; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.05; }
         .home-metric-card span { color: #64748B; font-size: 12px; font-weight: 800; }
+        .home-metric-delta { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 11px; font-weight: 800; font-style: normal; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; line-height: 1; }
+        .home-metric-delta span { color: inherit !important; font-size: 9px !important; font-weight: 700 !important; }
+        .home-metric-delta.is-up { color: var(--color-success); }
+        .home-metric-delta.is-down { color: var(--color-danger); }
+        .home-metric-delta.is-flat { color: var(--color-muted); }
         .home-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 14px; }
         .home-flow-step { position: relative; border: 1px solid #E2E8F0; border-radius: 18px; background: #fff; padding: 14px; min-height: 104px; }
         .home-flow-step:not(:last-child)::after { content: ''; position: absolute; top: 50%; right: -10px; width: 10px; height: 1px; background: #CBD5E1; }
@@ -114,12 +108,12 @@ export function HomePage() {
         .home-flow-step strong { display: block; margin-top: 8px; color: #111827; font-size: 14px; font-weight: 900; line-height: 1.35; }
         .home-flow-step small { display: block; margin-top: 7px; color: #64748B; font-size: 12px; font-weight: 700; line-height: 1.45; }
         .home-lower-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-        @media (max-width: 1180px) {
+        @container main (max-width: 1100px) {
           .home-hero-grid, .home-focus-inner, .home-lower-grid { grid-template-columns: 1fr; }
           .home-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .home-flow-step::after { display: none; }
         }
-        @media (max-width: 720px) {
+        @container main (max-width: 720px) {
           .home-focus-inner { padding: 18px; }
           .home-evidence-grid, .home-flow { grid-template-columns: 1fr; }
           .home-focus-title { font-size: 24px; }
@@ -183,15 +177,22 @@ export function HomePage() {
         <aside className="home-side-card">
           <SectionHeader title="핵심 지표" />
           <div className="home-metric-list">
-            {compactMetrics.map((metric) => (
-              <div key={metric.id} className="home-metric-card">
-                <div>
-                  <strong style={{ color: metric.color }}>{metric.value}<span style={{ marginLeft: 3, color: '#94A3B8', fontSize: 12 }}>{metric.unit}</span></strong>
-                  <span>{metric.label}</span>
+            {compactMetrics.map((metric) => {
+              const insight = metricInsightMap[metric.id] ?? { spark: [1, 2, 3, 2, 4, 3, 4], deltaLabel: '—', trend: 'flat' as MetricTrend };
+              return (
+                <div key={metric.id} className="home-metric-card">
+                  <div>
+                    <strong style={{ color: metric.color }}>{metric.value}<span style={{ marginLeft: 3, color: '#94A3B8', fontSize: 12 }}>{metric.unit}</span></strong>
+                    <span>{metric.label}</span>
+                    <em className={`home-metric-delta is-${insight.trend}`}>
+                      <span aria-hidden="true">{trendGlyph[insight.trend]}</span>
+                      {insight.deltaLabel}
+                    </em>
+                  </div>
+                  <Sparkline data={insight.spark} color={metric.color} width={96} height={32} strokeWidth={1.75} />
                 </div>
-                <Sparkline data={sparkData[metric.id] || [1, 2, 3, 2, 4, 3, 4]} color={metric.color} />
-              </div>
-            ))}
+              );
+            })}
           </div>
         </aside>
       </div>

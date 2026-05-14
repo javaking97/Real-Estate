@@ -1,4 +1,5 @@
 import React from 'react';
+import { FloatingFocusManager, FloatingOverlay, useFloating } from '@floating-ui/react';
 import { Badge } from '@/components/ui/Badge';
 import { ActionButton } from '@/components/ui/ActionButton';
 import { Card } from '@/components/ui/Card';
@@ -75,6 +76,19 @@ export function ToolsPage() {
 
   const addModalPresence = useAnimatedPresence(addModalOpen, 160);
   const detailModalPresence = useAnimatedPresence(Boolean(selectedBookmark), 160);
+  const addModalFloating = useFloating({
+    open: addModalOpen,
+    onOpenChange: setAddModalOpen,
+  });
+  const detailModalFloating = useFloating({
+    open: Boolean(selectedBookmark),
+    onOpenChange: (open) => {
+      if (!open) {
+        setSelectedBookmark(null);
+        setDetailEditMode(false);
+      }
+    },
+  });
   const [activeBookmark, setActiveBookmark] = React.useState<WorkToolBookmark | null>(null);
 
   React.useEffect(() => {
@@ -187,11 +201,25 @@ export function ToolsPage() {
         labelClassName="tools-kpi-label"
         valueClassName="tools-kpi-value"
         items={[
-          { label: '전체 사이트', value: bookmarks.length, unit: '개' },
-          { label: '필수 사이트', value: requiredBookmarkCount, unit: '개', valueClassName: 'accent-blue' },
           {
-            label: '즐겨찾기 / 내 사이트',
-            children: <div className="tools-kpi-value accent-orange">{favoriteBookmarkCount}<span>개</span><em>{customBookmarkCount}개 직접 등록</em></div>,
+            label: '전체 사이트',
+            value: bookmarks.length,
+            unit: '개',
+            delta: { trend: 'flat', label: `직접 등록 ${customBookmarkCount}` },
+          },
+          {
+            label: '필수 사이트',
+            value: requiredBookmarkCount,
+            unit: '개',
+            valueClassName: 'accent-blue',
+            delta: { trend: 'up', label: '업무 필수' },
+          },
+          {
+            label: '즐겨찾기',
+            value: favoriteBookmarkCount,
+            unit: '개',
+            valueClassName: 'accent-orange',
+            delta: { trend: 'up', label: `+${customBookmarkCount} 직접 등록` },
           },
         ]}
       />
@@ -240,8 +268,9 @@ export function ToolsPage() {
       </div>
 
       {addModalPresence.present && (
-        <div className="modal-backdrop tools-modal-backdrop" data-transition-status={addModalPresence.transitionStatus} onMouseDown={() => setAddModalOpen(false)}>
-          <div className="r-modal tools-add-modal" data-transition-status={addModalPresence.transitionStatus} role="dialog" aria-modal="true" aria-labelledby="tools-add-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+        <FloatingOverlay lockScroll className="modal-backdrop tools-modal-backdrop" data-transition-status={addModalPresence.transitionStatus} onMouseDown={() => setAddModalOpen(false)}>
+          <FloatingFocusManager context={addModalFloating.context}>
+            <div ref={addModalFloating.refs.setFloating} className="r-modal tools-add-modal" data-transition-status={addModalPresence.transitionStatus} role="dialog" aria-modal="true" aria-labelledby="tools-add-modal-title" onMouseDown={(event) => event.stopPropagation()}>
             <div className="tools-add-modal-header">
               <div>
                 <strong id="tools-add-modal-title">사이트 추가</strong>
@@ -282,13 +311,15 @@ export function ToolsPage() {
               <ActionButton variant="secondary" size="sm" onClick={() => setAddModalOpen(false)}>취소</ActionButton>
               <ActionButton variant="primary" size="sm" onClick={addBookmark}>등록</ActionButton>
             </div>
-          </div>
-        </div>
+            </div>
+          </FloatingFocusManager>
+        </FloatingOverlay>
       )}
 
       {detailModalPresence.present && activeBookmark && (
-        <div className="modal-backdrop tools-modal-backdrop" data-transition-status={detailModalPresence.transitionStatus} onMouseDown={closeDetailModal}>
-          <div className="r-modal tools-add-modal tools-detail-modal" data-transition-status={detailModalPresence.transitionStatus} role="dialog" aria-modal="true" aria-labelledby="tools-detail-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+        <FloatingOverlay lockScroll className="modal-backdrop tools-modal-backdrop" data-transition-status={detailModalPresence.transitionStatus} onMouseDown={closeDetailModal}>
+          <FloatingFocusManager context={detailModalFloating.context}>
+            <div ref={detailModalFloating.refs.setFloating} className="r-modal tools-add-modal tools-detail-modal" data-transition-status={detailModalPresence.transitionStatus} role="dialog" aria-modal="true" aria-labelledby="tools-detail-modal-title" onMouseDown={(event) => event.stopPropagation()}>
             <div className="tools-add-modal-header">
               <div className="tools-detail-title-block">
                 <span className="tools-detail-icon" style={{ color: categoryColorMap[activeBookmark.category], background: `${categoryColorMap[activeBookmark.category]}12` }}>{AppIcons.link}</span>
@@ -368,8 +399,9 @@ export function ToolsPage() {
                 )}
               </div>
             </div>
-          </div>
-        </div>
+            </div>
+          </FloatingFocusManager>
+        </FloatingOverlay>
       )}
     </div>
   );

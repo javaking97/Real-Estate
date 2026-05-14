@@ -6,19 +6,22 @@ type BadgeProps = PropsWithChildren<{
   dot?: boolean;
 }>;
 
-export function Badge({ children, color = '#6B7280', bg, dot }: BadgeProps) {
+export function Badge({ children, color = 'var(--color-muted)', bg, dot }: BadgeProps) {
+  const finalBg = bg || `color-mix(in oklch, ${color}, transparent 90%)`;
+  const finalBorder = `color-mix(in oklch, ${color}, transparent 80%)`;
+
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 5,
-      padding: '3px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+      padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800,
       color,
-      background: bg || `${color}10`,
-      border: `1px solid ${color}22`,
+      background: finalBg,
+      border: `1px solid ${finalBorder}`,
       lineHeight: 1,
-      letterSpacing: '-0.01em',
+      letterSpacing: '0.02em',
       whiteSpace: 'nowrap',
     }}>
-      {dot && <span style={{ width: 5, height: 5, borderRadius: '50%', background: color, display: 'inline-block', boxShadow: `0 0 0 2px ${color}14` }} />}
+      {dot && <span style={{ width: 5, height: 5, borderRadius: '50%', background: color, display: 'inline-block', boxShadow: `0 0 0 2px color-mix(in oklch, ${color}, transparent 92%)` }} />}
       {children}
     </span>
   );

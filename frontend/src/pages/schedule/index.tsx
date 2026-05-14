@@ -12,10 +12,10 @@ const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
 const initialScheduleDate = new Date(2026, 3, 25);
 
 const scheduleTypeColorMap: Record<string, string> = {
-  방문: '#2563EB',
-  계약: '#8B5CF6',
-  연락: '#F59E0B',
-  만기: '#EF4444',
+  방문: 'var(--color-brand)',
+  계약: 'var(--color-domain-consultations)',
+  연락: 'var(--color-warn)',
+  만기: 'var(--color-danger)',
 };
 
 const weeklyScheduleItems = [
@@ -149,7 +149,7 @@ export function SchedulePage() {
                       <span className="schedule-day-number">{date.getDate()}</span>
                       <span className="schedule-day-events">
                         {visibleSchedules.map((schedule) => (
-                          <span key={schedule.id} className="schedule-event-chip" style={{ color: schedule.color, background: `${schedule.color}12` }}>
+                          <span key={schedule.id} className="schedule-event-chip" style={{ color: schedule.color, background: `color-mix(in oklch, ${schedule.color}, transparent 92%)` }}>
                             <i style={{ background: schedule.color }} />{schedule.time} {schedule.type}
                           </span>
                         ))}
@@ -176,11 +176,11 @@ export function SchedulePage() {
                   className="schedule-selected-list"
                 >
                   {selectedSchedules.length > 0 ? selectedSchedules.map((schedule) => (
-                    <div key={schedule.id} className="schedule-timeline-item" style={{ borderColor: schedule.color, background: `${schedule.color}08` }}>
+                    <div key={schedule.id} className="schedule-timeline-item" style={{ borderColor: schedule.color, background: `color-mix(in oklch, ${schedule.color}, transparent 96%)` }}>
                       <span className="schedule-time" style={{ color: schedule.color }}>{schedule.time}</span>
                       <div>
                         <div className="schedule-item-title">{schedule.customer} · {schedule.title}</div>
-                        <Badge color={scheduleTypeColorMap[schedule.type] || '#6B7280'} dot>{schedule.type}</Badge>
+                        <Badge color={scheduleTypeColorMap[schedule.type] || 'var(--color-muted)'} dot>{schedule.type}</Badge>
                       </div>
                     </div>
                   )) : (
@@ -199,7 +199,7 @@ export function SchedulePage() {
           <Card style={{ padding: 16 }}>
             <SectionHeader title="이번 주 중요 일정" />
             {weeklyScheduleItems.map((item, index) => (
-              <div key={`${item.date.toISOString()}-${item.title}`} className="schedule-side-item" style={{ borderBottom: index < weeklyScheduleItems.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+              <div key={`${item.date.toISOString()}-${item.title}`} className="schedule-side-item" style={{ borderBottom: index < weeklyScheduleItems.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                 <div className="schedule-date-badge">{formatKoreanSelectedDate(item.date)}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="schedule-side-title">{item.title}</div>
@@ -209,16 +209,16 @@ export function SchedulePage() {
               </div>
             ))}
           </Card>
-          <Card style={{ padding: 16, borderColor: '#FECACA', background: 'linear-gradient(180deg, #fff 0%, #FEF2F2 100%)' }}>
+          <Card style={{ padding: 16, borderColor: 'var(--color-danger)', background: 'linear-gradient(180deg, var(--color-surface) 0%, color-mix(in oklch, var(--color-danger), transparent 96%) 100%)' }}>
             <SectionHeader title="만기 임박 고객" />
             {expiringCustomers.map((item, index) => (
-              <div key={item.name} className="schedule-side-item" style={{ borderBottom: index < expiringCustomers.length - 1 ? '1px solid #FEE2E2' : 'none' }}>
-                <Avatar initials={`${item.name[0]}○`} size={32} color="#EF4444" />
+              <div key={item.name} className="schedule-side-item" style={{ borderBottom: index < expiringCustomers.length - 1 ? '1px solid color-mix(in oklch, var(--color-danger), transparent 80%)' : 'none' }}>
+                <Avatar initials={`${item.name[0]}○`} size={32} color="var(--color-danger)" />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="schedule-side-title">{item.name}</div>
                   <div className="schedule-side-meta">{item.date} · {item.type}</div>
                 </div>
-                <ActionButton variant="outline" size="xs" color="#EF4444" style={{ minHeight: 32 }}>연락하기</ActionButton>
+                <ActionButton variant="outline" size="xs" color="var(--color-danger)" style={{ minHeight: 32 }}>연락하기</ActionButton>
               </div>
             ))}
           </Card>

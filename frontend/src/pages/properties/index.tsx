@@ -1,50 +1,129 @@
 import React from 'react';
+import { useNavigate, Outlet } from 'react-router-dom';
 import { realEstateMockData } from '@/lib/mock-data';
 import { Badge } from '@/components/ui/Badge';
 import { ActionButton } from '@/components/ui/ActionButton';
 import { Card } from '@/components/ui/Card';
-import { DetailModal, type DetailModalPayload } from '@/components/modals/DetailModal';
+import { DataTable, type DataColumn } from '@/components/ui/DataTable';
 import { EmptyResult } from '@/components/ui/EmptyResult';
 import { KpiCardGrid } from '@/components/ui/KpiCardGrid';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { SearchToolbar } from '@/components/ui/SearchToolbar';
 
-const propertyStatusColorMap: Record<string, string> = {
-  '추천 중': '#10B981',
-  '진행 중': '#2563EB',
-  신규: '#F59E0B',
+type Property = (typeof realEstateMockData.properties)[number];
+
+const propertyStatusToken: Record<string, string> = {
+  '추천 중': 'var(--color-success)',
+  '진행 중': 'var(--color-brand)',
+  신규: 'var(--color-warn)',
 };
 
-const templateStatusColorMap: Record<string, string> = {
-  '작성 완료': '#10B981',
-  '작성 대기': '#F59E0B',
-  미작성: '#EF4444',
+const templateStatusToken: Record<string, string> = {
+  '작성 완료': 'var(--color-success)',
+  '작성 대기': 'var(--color-warn)',
+  미작성: 'var(--color-danger)',
 };
 
-const propertyTypeColorMap: Record<string, string> = {
-  전세: '#2563EB',
-  매매: '#10B981',
-  월세: '#F59E0B',
+const propertyTypeToken: Record<string, string> = {
+  전세: 'var(--color-brand)',
+  매매: 'var(--color-success)',
+  월세: 'var(--color-warn)',
 };
 
 const propertyFilterOptions = ['전체', '전세', '매매', '월세'] as const;
 type PropertyFilter = (typeof propertyFilterOptions)[number];
 
+const PROPERTY_COMPACT_TEMPLATE = `
+  "name price"
+  "status template"
+  "match updated"
+`;
+
 export function PropertiesPage() {
-  const [modal, setModal] = React.useState<DetailModalPayload | null>(null);
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = React.useState<PropertyFilter>('전체');
   const [searchText, setSearchText] = React.useState('');
   const properties = realEstateMockData.properties;
+
   const filteredProperties = properties.filter((property) => {
     const matchesType = activeFilter === '전체' || property.type === activeFilter;
     const normalizedSearchText = searchText.trim().toLowerCase();
     const matchesSearch = !normalizedSearchText || `${property.name} ${property.region}`.toLowerCase().includes(normalizedSearchText);
-
     return matchesType && matchesSearch;
   });
+
   const recommendedPropertyCount = properties.filter((property) => property.status === '추천 중').length;
   const unmatchedTemplateCount = properties.filter((property) => property.template !== '작성 완료').length;
   const totalMatchCount = properties.reduce((matchCountSum, property) => matchCountSum + property.matchCount, 0);
+
+  const resetFilters = () => {
+    setSearchText('');
+    setActiveFilter('전체');
+  };
+
+  const columns: DataColumn<Property>[] = [
+    {
+      key: 'name',
+      header: '매물',
+      width: 'minmax(190px, 2fr)',
+      area: 'name',
+      render: (property) => (
+        <div className="dt-stack">
+          <strong>{property.name}</strong>
+          <span>{property.region} · {property.area} / {property.floor}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'price',
+      header: '거래/가격',
+      width: 'minmax(160px, 1.2fr)',
+      area: 'price',
+      align: 'right',
+      render: (property) => (
+        <div className="dt-inline">
+          <Badge color={propertyTypeToken[property.type] ?? 'var(--color-muted)'}>{property.type}</Badge>
+          <strong>{property.price}</strong>
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: '상태',
+      width: 'minmax(100px, auto)',
+      area: 'status',
+      render: (property) => (
+        <Badge color={propertyStatusToken[property.status] ?? 'var(--color-muted)'} dot>{property.status}</Badge>
+      ),
+    },
+    {
+      key: 'match',
+      header: '매칭',
+      width: 'minmax(70px, auto)',
+      area: 'match',
+      render: (property) => (
+        <span className={property.matchCount > 0 ? 'dt-match is-active' : 'dt-match'}>{property.matchCount}명</span>
+      ),
+    },
+    {
+      key: 'template',
+      header: '템플릿',
+      width: 'minmax(110px, auto)',
+      area: 'template',
+      align: 'right',
+      render: (property) => (
+        <Badge color={templateStatusToken[property.template] ?? 'var(--color-muted)'}>{property.template}</Badge>
+      ),
+    },
+    {
+      key: 'updated',
+      header: '수정일',
+      width: 'minmax(70px, auto)',
+      area: 'updated',
+      align: 'right',
+      render: (property) => <span className="dt-meta">{property.updated}</span>,
+    },
+  ];
 
   return (
     <div className="properties-page">
@@ -62,9 +141,29 @@ export function PropertiesPage() {
         labelClassName="properties-kpi-label"
         valueClassName="properties-kpi-value"
         items={[
-          { label: '전체 매물', value: properties.length, unit: '건' },
-          { label: '추천 중', value: recommendedPropertyCount, unit: '건', valueClassName: 'accent-green' },
-          { label: '템플릿 필요', value: unmatchedTemplateCount, unit: '건', valueClassName: 'accent-red' },
+          {
+            label: '전체 매물',
+            value: properties.length,
+            unit: '건',
+            delta: { trend: 'up', label: '+2 신규' },
+            sparkline: { data: [12, 13, 13, 15, 16, 18, 18], color: 'var(--color-brand)' },
+          },
+          {
+            label: '추천 중',
+            value: recommendedPropertyCount,
+            unit: '건',
+            valueClassName: 'accent-green',
+            delta: { trend: 'up', label: `매칭 ${totalMatchCount}명` },
+            sparkline: { data: [3, 4, 5, 4, 6, 7, 7], color: 'var(--color-success)' },
+          },
+          {
+            label: '템플릿 필요',
+            value: unmatchedTemplateCount,
+            unit: '건',
+            valueClassName: 'accent-red',
+            delta: { trend: 'down', label: '-1 전일' },
+            sparkline: { data: [5, 6, 5, 4, 4, 3, 3], color: 'var(--color-danger)' },
+          },
         ]}
       />
 
@@ -83,73 +182,24 @@ export function PropertiesPage() {
           filterAriaLabel="거래유형 필터"
         />
 
-        <div className="properties-table-wrap">
-          <table className="properties-table">
-            <thead>
-              <tr>
-                {['매물', '거래/가격', '상태', '매칭', '템플릿', '수정일'].map((headerLabel) => (
-                  <th key={headerLabel}>{headerLabel}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProperties.map((property) => (
-                <tr key={property.id} onClick={() => setModal({ type: 'property', data: property })}>
-                  <td>
-                    <div className="properties-name-cell">
-                      <strong>{property.name}</strong>
-                      <span>{property.region} · {property.area} / {property.floor}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="properties-price-cell">
-                      <Badge color={propertyTypeColorMap[property.type] || '#6B7280'}>{property.type}</Badge>
-                      <strong>{property.price}</strong>
-                    </div>
-                  </td>
-                  <td><Badge color={propertyStatusColorMap[property.status] || '#9CA3AF'} dot>{property.status}</Badge></td>
-                  <td><span className={property.matchCount > 0 ? 'properties-match-count is-active' : 'properties-match-count'}>{property.matchCount}명</span></td>
-                  <td><Badge color={templateStatusColorMap[property.template] || '#9CA3AF'}>{property.template}</Badge></td>
-                  <td><span className="properties-updated">{property.updated}</span></td>
-                </tr>
-              ))}
-              {filteredProperties.length === 0 && (
-                <tr>
-                  <td colSpan={6}>
-                    <EmptyResult title="조건에 맞는 매물이 없습니다" description="검색어나 거래 유형 필터를 초기화해 다시 확인하세요." onReset={() => { setSearchText(''); setActiveFilter('전체'); }} />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="properties-card-list">
-          {filteredProperties.map((property) => (
-            <button key={property.id} type="button" className="properties-mobile-card" onClick={() => setModal({ type: 'property', data: property })}>
-              <div className="properties-card-main">
-                <div>
-                  <strong>{property.name}</strong>
-                  <span>{property.region}</span>
-                </div>
-                <strong className="properties-card-price">{property.price}</strong>
-              </div>
-              <div className="properties-card-meta">
-                <span>{property.type}</span>
-                <span>{property.area} / {property.floor}</span>
-                <span>{property.matchCount}명 매칭</span>
-              </div>
-              <div className="properties-card-badges">
-                <Badge color={propertyStatusColorMap[property.status] || '#9CA3AF'} dot>{property.status}</Badge>
-                <Badge color={templateStatusColorMap[property.template] || '#9CA3AF'}>{property.template}</Badge>
-                <span>{property.updated}</span>
-              </div>
-            </button>
-          ))}
-          {filteredProperties.length === 0 && <EmptyResult title="조건에 맞는 매물이 없습니다" description="검색어나 거래 유형 필터를 초기화해 다시 확인하세요." onReset={() => { setSearchText(''); setActiveFilter('전체'); }} />}
-        </div>
+        <DataTable
+          columns={columns}
+          rows={filteredProperties}
+          rowKey={(property) => property.id}
+          onRowClick={(property) => navigate(property.id.toString())}
+          compactTemplate={PROPERTY_COMPACT_TEMPLATE}
+          compactColumns="1fr auto"
+          minDesktopWidth={760}
+          emptyState={
+            <EmptyResult
+              title="조건에 맞는 매물이 없습니다"
+              description="검색어나 거래 유형 필터를 초기화해 다시 확인하세요."
+              onReset={resetFilters}
+            />
+          }
+        />
       </Card>
-      <DetailModal modal={modal} onClose={() => setModal(null)} />
+      <Outlet />
     </div>
   );
 }

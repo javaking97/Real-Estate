@@ -2,8 +2,8 @@ import React from 'react';
 
 export type PopoverTransitionStatus = 'closed' | 'opening' | 'open' | 'close';
 
-export function useAnimatedPresence(open: boolean, closeDuration = 100) {
-  const [transitionStatus, setTransitionStatus] = React.useState<PopoverTransitionStatus>(open ? 'open' : 'closed');
+export function useAnimatedPresence(open: boolean, closeDuration = 90) {
+  const [transitionStatus, setTransitionStatus] = React.useState<PopoverTransitionStatus>(open ? 'opening' : 'closed');
   const closeTimerRef = React.useRef<number | null>(null);
   const frameRef = React.useRef<number | null>(null);
 
